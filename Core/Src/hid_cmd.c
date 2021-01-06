@@ -158,7 +158,8 @@ static uint8_t hid_mdio_download(uint8_t *buf)
         mdio_dwn.idx += len;
         if (mdio_dwn.idx >= mdio_dwn.size) {
                 buf[0] = CMD_MDIO_DOWNLOAD + 1;
-                buf[2] = 0xff;
+                buf[1] = 0;
+                buf[2] = 0xCC;
                 return 0;
         }
         return 2;

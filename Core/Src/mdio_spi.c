@@ -89,9 +89,6 @@ void spi_mdio_write(uint8_t *buf, uint8_t len)
         spi_mdio_enable(&status);
         /*transmit and receive data */
         HAL_SPI_Transmit(status.hspi, buf, len, TIMEOUT_10_MS);
-        /* compatibility mcp2210 */
-        buf[1] = 0;
-        buf[2] = len;
         /* disable buf chip */
         spi_mdio_disable(&status);
 }

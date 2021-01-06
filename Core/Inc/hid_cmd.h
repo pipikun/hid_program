@@ -13,12 +13,20 @@
 #define CMD_MDIO_WRITE                  0x31
 #define CMD_MDIO_READ                   0x32
 
+#define CMD_MDIO_DOWNLOAD_CFG           0x34
+#define CMD_MDIO_DOWNLOAD               0x35
+
 #define FIRMWARE_SIZE                   (32 * 1024)
 #define DEV_PAGE_SIZE                   64
 
+enum mdio_down_type {
+        SRAM_FW = 0,
+        FLASH_FW,
+};
+
 struct i2c_param {
-        uint8_t dev;
         uint16_t addr;
+        uint8_t dev;
         uint8_t addr_width;
         uint8_t page_size;
 };
@@ -32,6 +40,13 @@ struct i2c_download {
 struct mdio_param {
         uint8_t clause;
         uint8_t op;
+};
+
+struct mdio_download {
+        uint16_t size;
+        uint16_t addr;
+        uint16_t idx;
+        uint8_t type;
 };
 
 uint8_t hid_cmd_entry(uint8_t *buf);

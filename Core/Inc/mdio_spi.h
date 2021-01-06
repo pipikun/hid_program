@@ -25,7 +25,7 @@ struct spi_mdio_status {
 
 void spi_mdio_send(uint8_t *buf);
 void spi_mdio_config(uint8_t *buf);
-void spi_mdio_write(uint8_t *buf);
+void spi_mdio_write(uint8_t *buf, uint8_t len);
 void spi_mdio_read(uint8_t *buf);
 
 #endif /*__MDIO_SPI_H__ */

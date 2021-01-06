@@ -36,6 +36,7 @@ extern "C" {
 #include "i2c.h"
 #include "mdio.h"
 #include "hid_cmd.h"
+#include "flash.h"
 
 /* USER CODE END Includes */
 

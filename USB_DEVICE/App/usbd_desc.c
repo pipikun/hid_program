@@ -75,9 +75,6 @@
 //STM32 VID 0483
 //MCP2219 VID 04d8
 
-#define USBD_VID        0x0483
-#define USBD_PID_FS     0x00de
-
 /* USER CODE END PRIVATE_DEFINES */
 
 /**

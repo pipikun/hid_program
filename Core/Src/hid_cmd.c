@@ -2,6 +2,7 @@
 #include "i2c.h"
 #include "mdio.h"
 #include "spi.h"
+#include "mdio_spi.h"
 
 struct i2c_param i2c_cfg;
 struct i2c_download i2c_dwn;
@@ -9,16 +10,16 @@ struct mdio_param mdio_cfg;
 
 uint8_t fw_buf[FIRMWARE_SIZE] = {0};
 
-static void hid_firmware_download(void)
+static void hid_i2c_firmware_download(void)
 {
         uint16_t page, less, addr, idx = 0;
 
-        page = (uint16_t)(i2c_dwn.size/PAGE_SIZE);
+        page = (uint16_t)(i2c_dwn.size/DEV_PAGE_SIZE);
         addr = i2c_dwn.first_addr;
 
         /* hand */
-        less = PAGE_SIZE - (addr % PAGE_SIZE);
-        if (less != PAGE_SIZE) {
+        less = DEV_PAGE_SIZE - (addr % DEV_PAGE_SIZE);
+        if (less != DEV_PAGE_SIZE) {
                 i2c_write_data(addr, less, &fw_buf[idx]);
                 idx = less;
                 addr += less;
@@ -27,8 +28,8 @@ static void hid_firmware_download(void)
         /* body */
         for (int i=0; i< page; i++) {
                 eeprom_write_page(addr, &fw_buf[idx]);
-                idx += PAGE_SIZE;
-                addr += PAGE_SIZE;
+                idx += DEV_PAGE_SIZE;
+                addr += DEV_PAGE_SIZE;
         }
 
         /* tial */
@@ -101,7 +102,7 @@ static uint8_t hid_i2c_download(uint8_t *buf)
 
         /* download */
         if (i2c_dwn.idx >= i2c_dwn.size) {
-                hid_firmware_download();
+                hid_i2c_firmware_download();
                 buf[0] = CMD_I2C_DOWNLOAD + 1;
                 buf[2] = 0xff;
                 return 0;
@@ -111,84 +112,17 @@ static uint8_t hid_i2c_download(uint8_t *buf)
 
 static void hid_mdio_cfg(uint8_t *buf)
 {
-        mdio_cfg.clause = buf[3];
-        mdio_cfg.op = buf[4];
-}
-
-static void hid_mdio_write(uint8_t *buf)
-{
-        uint8_t phy = buf[3];
-        uint8_t reg = buf[4];
-        uint16_t data = 0;
-        uint16_t data_45;
-
-        data = buf[5];
-        data<<=8;
-        data += buf[6];
-
-        switch (mdio_cfg.clause) {
-        case 0x22:
-                mdio_22_write(phy, reg, data);
-                break;
-        case 0x45:
-                data_45 = buf[7];
-                data_45 <<= 8;
-                data_45 += buf[8];
-                mdio_45_write(phy, reg, data, data_45);
-                break;
-        default:
-                buf[2] = 0x33;
-                break;
-        }
+        spi_mdio_config(buf);
 }
 
 static void hid_mdio_read(uint8_t *buf)
 {
-        uint8_t phy = buf[3];
-        uint8_t reg = buf[4];
-        uint16_t data;
-
-        data = buf[5];
-        data<<=8;
-        data += buf[6];
-
-        switch (mdio_cfg.clause) {
-        case 0x22:
-                data = mdio_22_read(phy, reg);
-                break;
-        case 0x45:
-                data = mdio_45_read(phy, reg, data);
-                break;
-        default:
-                buf[2] = 0x33;
-                break;
-        }
-        buf[6] = data>>8;
-        buf[7] = data & 0xff;
+        spi_mdio_read(buf);
 }
 
-void hid_mcp2210_rw(uint8_t *buf)
+static void hid_mdio_write(uint8_t *buf)
 {
-        uint8_t hand;
-
-        hand = buf[8];
-        hand = hand & 0x00;
-}
-
-void hid_mcp2210_45_rw(uint8_t *buf)
-{
-        uint8_t len = buf[1];
-        uint8_t rec[64]={0};
-
-        for (int j=0; j<64; j++) {
-                rec[j] = 0;
-        }
-        HAL_SPI_TransmitReceive(&hspi1, &buf[4], &rec[4], len, 10);
-        for (int i=4; i<64; i++) {
-                buf[i] = rec[i];
-        }
-        buf[1] = 0;
-        buf[2] = len;
+        spi_mdio_send(buf);
 }
 
 uint8_t hid_cmd_entry(uint8_t *buf)
@@ -220,9 +154,6 @@ uint8_t hid_cmd_entry(uint8_t *buf)
                 break;
         case CMD_MDIO_READ:
                 hid_mdio_read(buf);
-                break;
-        case CMD_MCP2210_RW:
-                hid_mcp2210_45_rw(buf);
                 break;
         default:
                 break;

@@ -13,10 +13,8 @@
 #define CMD_MDIO_WRITE                  0x31
 #define CMD_MDIO_READ                   0x32
 
-#define CMD_MCP2210_RW                  0x42
-
 #define FIRMWARE_SIZE                   (32 * 1024)
-#define PAGE_SIZE                       64
+#define DEV_PAGE_SIZE                   64
 
 struct i2c_param {
         uint8_t dev;

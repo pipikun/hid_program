@@ -20,8 +20,6 @@
 #define UINT16_H(X)			(X >> 8)
 #define UINT16_L(X)			(X & 0x00ff)
 
-//#define I2C_MSB_W			0xa0
-//#define I2C_MSB_R			0xa1
 uint8_t I2C_MSB_W = 0xa0;
 uint8_t I2C_MSB_R = 0xa1;
 

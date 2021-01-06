@@ -11,10 +11,10 @@
 #define SHELL_DEBUG_E				OFF
 
 /* I2C config  */
-#define I2C_SDA_GPIO                            GPIOC
-#define I2C_SDA_PIN                             GPIO_PIN_8
-#define I2C_SCL_GPIO                            GPIOC
-#define I2C_SCL_PIN                             GPIO_PIN_9
+#define I2C_SDA_GPIO                            GPIOB
+#define I2C_SDA_PIN                             GPIO_PIN_7
+#define I2C_SCL_GPIO                            GPIOB
+#define I2C_SCL_PIN                             GPIO_PIN_6
 
 /* MDIO config */
 #define MDIO_GPIO                               GPIOC

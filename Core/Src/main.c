@@ -95,6 +95,7 @@ int main(void)
         MX_USART1_UART_Init();
         MX_USB_DEVICE_Init();
         MX_SPI1_Init();
+        MX_SPI2_Init();
         /* USER CODE BEGIN 2 */
         i2c_gpio_init();
         mdio_module_init();

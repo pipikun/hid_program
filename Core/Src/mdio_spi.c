@@ -1,6 +1,6 @@
 #include "mdio_spi.h"
 
-struct spi_mdio_status status;
+struct spi_mdio_status status={.dev=0, .hspi=&hspi1};
 
 static void spi_mdio_dev_sel(struct spi_mdio_status *status, uint8_t dev)
 {
@@ -22,7 +22,7 @@ static void spi_mdio_dev_sel(struct spi_mdio_status *status, uint8_t dev)
         }
 }
 
-static void spi_mdio_enable(struct spi_mdio_status *status)
+void spi_mdio_enable(struct spi_mdio_status *status)
 {
         switch (status->dev) {
         case PHY1:
@@ -34,7 +34,7 @@ static void spi_mdio_enable(struct spi_mdio_status *status)
         }
 }
 
-static void spi_mdio_disable(struct spi_mdio_status *status)
+void spi_mdio_disable(struct spi_mdio_status *status)
 {
         switch (status->dev) {
         case PHY1:
@@ -54,7 +54,7 @@ void spi_mdio_config(uint8_t *buf)
         buf[2] = 0xaa;
 }
 
-#define TIMEOUT_10_MS   10
+#define TIMEOUT_1_MS    10
 #define DATA_START      3
 void spi_mdio_send(uint8_t *buf)
 {
@@ -68,7 +68,7 @@ void spi_mdio_send(uint8_t *buf)
         /* enable buf chip */
         spi_mdio_enable(&status);
         /*transmit and receive data */
-        HAL_SPI_TransmitReceive(status.hspi, &buf[DATA_START], &rec_buf[DATA_START], len, TIMEOUT_10_MS);
+        HAL_SPI_TransmitReceive(status.hspi, &buf[DATA_START], &rec_buf[DATA_START], len, TIMEOUT_1_MS);
         /* return data */
         for (int i=DATA_START; i<64; i++) {
                 buf[i] = rec_buf[i];
@@ -81,16 +81,47 @@ void spi_mdio_send(uint8_t *buf)
 }
 
 /*
- * breaf: This is fast mode, don't care about 'MISO'.
+ * brief: This is fast mode, don't care about 'MISO'.
  */
 void spi_mdio_write(uint8_t *buf, uint8_t len)
 {
         /* enable buf chip */
         spi_mdio_enable(&status);
-        /*transmit and receive data */
-        HAL_SPI_Transmit(status.hspi, buf, len, TIMEOUT_10_MS);
+
+        /*transmit data */
+        HAL_SPI_Transmit(status.hspi, buf, len, TIMEOUT_1_MS);
+
         /* disable buf chip */
         spi_mdio_disable(&status);
+}
+
+/*
+ * brief: This is fast mode, don't care about 'MISO'.
+ */
+void spi_mdio_write_fs(uint8_t *buf, uint8_t len)
+{
+        uint8_t rpl[128];
+        uint8_t i, idx;
+        uint8_t size;
+
+        /* reset */
+        for (i=0; i<128; i++) {
+                rpl[i] = 0xff;
+        }
+
+        idx = 4;
+        /* replance */
+        for (i=0; i<len; i+=4) {
+                rpl[idx]   = buf[i];
+                rpl[idx+1] = buf[i+1];
+                rpl[idx+2] = buf[i+2];
+                rpl[idx+3] = buf[i+3];
+                idx += 8;
+        }
+        /* double length */
+        size = len * 2;
+        spi_mdio_write(rpl, size);
+        buf[2] = 0x55;
 }
 
 void spi_mdio_read(uint8_t *buf)
@@ -105,7 +136,7 @@ void spi_mdio_read(uint8_t *buf)
         /* enable buf chip */
         spi_mdio_enable(&status);
         /*transmit and receive data */
-        HAL_SPI_TransmitReceive(status.hspi, &buf[DATA_START], &rec_buf[DATA_START], len, TIMEOUT_10_MS);
+        HAL_SPI_TransmitReceive(status.hspi, &buf[DATA_START], &rec_buf[DATA_START], len, TIMEOUT_1_MS);
         /* return data */
         for (int i=DATA_START; i<64; i++) {
                 buf[i] = rec_buf[i];

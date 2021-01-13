@@ -210,3 +210,8 @@ void mdio_45_write(uint8_t phy, uint8_t dev, uint16_t reg, uint16_t val)
         debug_s("phy: 0x%02x, reg: 0x%02x, dev: 0x%02x, data: 0x%02x\r\n", phy, reg, dev, val);
 }
 
+void mdio_format_data(uint8_t *src, uint8_t *tag, uint32_t *len, enum mdio_clause_type type)
+{
+
+
+}

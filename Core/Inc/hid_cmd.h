@@ -43,8 +43,8 @@ struct mdio_param {
 };
 
 struct mdio_download {
-        uint16_t size;
-        uint16_t addr;
+        uint32_t size;
+        uint32_t addr;
         uint16_t idx;
         uint8_t type;
 };

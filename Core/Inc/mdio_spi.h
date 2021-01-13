@@ -27,6 +27,12 @@ void spi_mdio_send(uint8_t *buf);
 void spi_mdio_config(uint8_t *buf);
 void spi_mdio_write(uint8_t *buf, uint8_t len);
 void spi_mdio_read(uint8_t *buf);
+void spi_mdio_write_fs(uint8_t *buf, uint8_t len);
+
+void spi_mdio_enable(struct spi_mdio_status *status);
+void spi_mdio_disable(struct spi_mdio_status *status);
+
+extern struct spi_mdio_status status;
 
 #endif /*__MDIO_SPI_H__ */
 //vim: ts=8 sw=8 noet autoindent:

@@ -113,19 +113,29 @@ static uint8_t hid_i2c_download(uint8_t *buf)
 
 static void hid_mdio_download_cfg(uint8_t *buf)
 {
-        uint16_t addr, size;
+        uint32_t addr, size;
 
         addr = buf[3];
         addr <<= 8;
         addr += buf[4];
+
         size = buf[5];
-        size <<=8;
+        size <<=24;
         size += buf[6];
+        size <<=16;
+        size += buf[7];
+        size <<=8;
+        size += buf[8];
 
         mdio_dwn.size = size;
         mdio_dwn.addr = addr;
-        mdio_dwn.type = buf[7];
+        mdio_dwn.type = buf[9];
         mdio_dwn.idx = 0;
+
+        /* enable buf chip */
+        spi_mdio_enable(&status);
+
+        buf[2] = 0xcc;
 }
 
 static void hid_flash_download(uint8_t *buf, uint8_t len)
@@ -146,7 +156,7 @@ static uint8_t hid_mdio_download(uint8_t *buf)
         /* sram download  */
         switch (mdio_dwn.type) {
         case SRAM_FW:
-                spi_mdio_write(&buf[4], len);
+                spi_mdio_write_fs(&buf[4], len);
                 break;
         case FLASH_FW:
                 hid_flash_download(&buf[4], len);
@@ -154,13 +164,14 @@ static uint8_t hid_mdio_download(uint8_t *buf)
         default:
                 break;
         }
-
         mdio_dwn.idx += len;
         if (mdio_dwn.idx >= mdio_dwn.size) {
                 buf[0] = CMD_MDIO_DOWNLOAD + 1;
                 buf[1] = 0;
-                buf[2] = 0xCC;
+                buf[2] = 0xAA;
                 return 0;
+                /* close spi */
+                spi_mdio_disable(&status);
         }
         return 2;
 }

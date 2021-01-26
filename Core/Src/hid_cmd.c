@@ -152,7 +152,7 @@ static void hid_flash_download(uint8_t *buf, uint8_t len)
 
 static void hid_flash_firmware_save(uint8_t *buf)
 {
-	uint32_t len, page, less, code;
+	uint32_t len, page, less;
 
 	len = mdio_dwn.size;
 	page = (int)(len/FLASH_PAGE_SIZE);
@@ -164,14 +164,6 @@ static void hid_flash_firmware_save(uint8_t *buf)
 
 	/* load to sram */
 	sram_loader(&sram_cfg);
-
-	/* dump load info */
-	code = sram_cfg.code;
-	for (uint32_t i=0; i<4; i++) {
-		buf[3+i] = code & 0xff;
-		code >>=8;
-	}
-	buf[2] = sram_cfg.state;
 }
 
 static uint8_t hid_mdio_download(uint8_t *buf)
@@ -228,6 +220,23 @@ static void hid_mcu_config(uint8_t *buf)
 
 static void hid_mcu_dump(uint8_t *buf)
 {
+	uint32_t code;
+
+	/* dump load info */
+	buf[3] = sram_cfg.state;
+
+	code = sram_cfg.code;
+	for (uint32_t i=0; i<4; i++) {
+		buf[4+i] = code & 0xff;
+		code >>=8;
+	}
+
+	buf[8] = sram_cfg.len>>8;
+	buf[9] = sram_cfg.len&0xff;
+
+	buf[10] = sram_cfg.opt>>8;
+	buf[11] = sram_cfg.opt&0xff;
+
 
 }
 

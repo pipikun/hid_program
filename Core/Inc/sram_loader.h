@@ -14,11 +14,11 @@ enum sram_state {
 struct sram_loader_config
 {
 	enum sram_state state;
-	uint32_t len;
-	uint32_t pc;
+	uint16_t len;
+	uint16_t pc;
 	uint32_t offset;
 	uint32_t code;
-	uint32_t opt;
+	uint16_t opt;
 	uint32_t block;
 };
 

@@ -210,8 +210,39 @@ void mdio_45_write(uint8_t phy, uint8_t dev, uint16_t reg, uint16_t val)
         debug_s("phy: 0x%02x, reg: 0x%02x, dev: 0x%02x, data: 0x%02x\r\n", phy, reg, dev, val);
 }
 
-void mdio_format_data(uint8_t *src, uint8_t *tag, uint32_t *len, enum mdio_clause_type type)
+uint32_t _gene_mdio_22_write(uint8_t phy, uint8_t reg, uint16_t val)
 {
-
-
+	return (((0x05<<12)|((phy&0x1f)<<7)|((reg&0x1f)<<2)|0x02)<<16) |(val);
 }
+
+uint32_t _gene_mdio_22_read(uint8_t phy, uint8_t reg)
+{
+	return (((0x06<<12)|((phy&0x1f)<<7)|((reg&0x1f)<<2)|0x02)<<16)|(0xffff);
+}
+
+uint32_t _gene_mdio_45_write(uint8_t phy, uint8_t dev, uint16_t val)
+{
+	return (((0x01<<12)|((phy&0x1f)<<7)|((dev&0x1f)<<2)|0x02)<<16)|val;
+}
+
+uint32_t _gene_mdio_45_read(uint8_t phy, uint8_t dev, uint8_t reg)
+{
+	return (((0x03<<12)|((phy&0x1f)<<7)|((dev&0x1f)<<2)|0x02)<<16)|(0xffff);
+}
+
+uint32_t _gene_mdio_45_addr(uint8_t phy, uint8_t dev, uint16_t reg)
+{
+	return (((0x00<<12)|((phy&0x1f)<<7)|((dev&0x1f)<<2)|0x02)<<16)|reg;
+}
+
+void gene_mdio_22_transmit_package(uint8_t *src, uint16_t *tag, uint16_t len)
+{
+	uint16_t size;
+
+	size = len;
+	while(size--) {
+
+	}
+}
+
+

@@ -18,6 +18,8 @@
 #define MDIO_45_OP_INC_ADDR     0x02
 #define MDIO_45_TA              0x02
 
+#define MDIO_PREAMBLE		(0xffffffff)
+
 enum mdio_clause_type {
         MDIO_45 = 0,
         MDIO_22,
@@ -57,6 +59,7 @@ void mdio_receive(union mdio_pkg *pkg, uint8_t *buf, uint32_t len);
 void mdio_pkg_init(union mdio_pkg *pkg, enum mdio_clause_type type);
 void mdio_write_one_byte(union mdio_pkg *pkg);
 void mdio_read_one_byte(union mdio_pkg *pkg);
+void spi_mdio_get(uint8_t *src, uint8_t *tag, uint8_t len);
 
 void mdio_module_init(void);
 

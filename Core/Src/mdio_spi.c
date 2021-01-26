@@ -96,6 +96,21 @@ void spi_mdio_write(uint8_t *buf, uint8_t len)
 }
 
 /*
+ * brief: This is fast mode.
+ */
+void spi_mdio_get(uint8_t *src, uint8_t *tag, uint8_t len)
+{
+	/* enable buf chip */
+        spi_mdio_enable(&status);
+
+        /*transmit data */
+        HAL_SPI_TransmitReceive(status.hspi, src, tag, len, TIMEOUT_1_MS);
+
+        /* disable buf chip */
+        spi_mdio_disable(&status);
+}
+
+/*
  * brief: This is fast mode, don't care about 'MISO'.
  */
 void spi_mdio_write_fs(uint8_t *buf, uint8_t len)

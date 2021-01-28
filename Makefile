@@ -47,6 +47,7 @@ Core/Src/i2c.c \
 Core/Src/flash.c \
 Core/Src/mdio.c \
 Core/Src/mdio_spi.c \
+Core/Src/hal_i2c.c \
 Core/Src/sram_loader.c \
 Core/Src/stm32f1xx_it.c \
 Core/Src/stm32f1xx_hal_msp.c \

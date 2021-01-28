@@ -2,6 +2,7 @@
 #define __SRAM_LOADER_H__
 
 #include "main.h"
+#include "mdio.h"
 
 enum sram_state {
 	LOADER_DONE = 1,
@@ -14,6 +15,7 @@ enum sram_state {
 struct sram_loader_config
 {
 	enum sram_state state;
+	enum mdio_clause_type clause;
 	uint16_t len;
 	uint16_t pc;
 	uint32_t offset;

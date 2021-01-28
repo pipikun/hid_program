@@ -8,6 +8,7 @@
 #include "flash.h"
 
 #define PHY_ADR		0
+#define DEV_TYPE	0
 #define BLOCK_SIZE	9
 #define LOADE_SIZE	6
 #define EXECUTE_CMD	0x8006
@@ -52,6 +53,20 @@ static inline void _mdio_22_write(uint8_t phy, uint8_t reg, uint16_t val)
 	spi_mdio_write(tag, 8);
 }
 
+static inline void _mdio_45_write(uint8_t phy, uint8_t reg, uint16_t val)
+{
+	uint32_t src[2];
+	uint8_t tag[8];
+
+	src[0] = MDIO_PREAMBLE;
+	src[1] = _gene_mdio_45_write(phy, reg, val);
+
+	_uint32_to_uint8(src, tag, 2);
+
+	/* spi transmit */
+	spi_mdio_write(tag, 8);
+}
+
 static inline uint16_t _mdio_22_read(uint8_t phy, uint8_t reg)
 {
 	uint32_t src[2];
@@ -69,7 +84,7 @@ static inline uint16_t _mdio_22_read(uint8_t phy, uint8_t reg)
 	return (ret[6]<<8)|(ret[7]);
 }
 
-static inline void _sram_load(uint16_t *buf, uint16_t len)
+static inline void _sram_load_22(uint16_t *buf, uint16_t len)
 {
 	uint16_t size, data_size;
 	uint32_t *src;
@@ -91,6 +106,43 @@ static inline void _sram_load(uint16_t *buf, uint16_t len)
 	}
 	src[size-2] = MDIO_PREAMBLE;
 	src[size-1] = _gene_mdio_22_write(PHY_ADR, 0, buf[len-1]);
+
+	/* uint32_t to uint8_t */
+	_uint32_to_uint8(src, tag, size);
+
+	/* spi transmit */
+	spi_mdio_write(tag, data_size);
+
+	free(src);
+	free(tag);
+}
+
+static inline void _sram_load_45(uint16_t *buf, uint16_t len)
+{
+	uint16_t size, data_size;
+	uint32_t *src;
+	uint8_t *tag;
+
+	size = len * 4;
+	data_size = len * 16;
+
+	src = (uint32_t *)malloc(size * sizeof(uint32_t));
+	tag = (uint8_t *)malloc(data_size * sizeof(uint8_t));
+
+	if (src == NULL || tag == NULL) {
+		Error_Handler();
+	}
+
+	for (int i=0,idx=0; i<len-1; i++,idx+=4) {
+		src[idx] = MDIO_PREAMBLE;
+		src[idx+1] = _gene_mdio_45_addr(PHY_ADR, DEV_TYPE, i+1);
+		src[idx+2] = MDIO_PREAMBLE;
+		src[idx+3] = _gene_mdio_45_write(PHY_ADR, DEV_TYPE , buf[i]);
+	}
+	src[size-4] = MDIO_PREAMBLE;
+	src[size-3] = _gene_mdio_45_addr(PHY_ADR, DEV_TYPE, 0);
+	src[size-2] = MDIO_PREAMBLE;
+	src[size-1] = _gene_mdio_45_write(PHY_ADR, DEV_TYPE , buf[len-1]);
 
 	/* uint32_t to uint8_t */
 	_uint32_to_uint8(src, tag, size);
@@ -150,7 +202,7 @@ static inline void __flash_load_stop(void)
 	_mdio_22_write(0, 0, 0x4000);
 }
 
-static inline void __copy_to_sram(uint32_t ram_addr, uint32_t addr)
+static inline void __copy_to_sram(struct sram_loader_config *cfg, uint32_t ram_addr, uint32_t addr)
 {
 	uint16_t block[BLOCK_SIZE];
 
@@ -162,7 +214,11 @@ static inline void __copy_to_sram(uint32_t ram_addr, uint32_t addr)
 	}
 	block[8] = EXECUTE_CMD;
 
-	_sram_load(block, BLOCK_SIZE);
+	if (cfg->clause == MDIO_22) {
+		_sram_load_22(block, BLOCK_SIZE);
+	} else if (cfg->clause == MDIO_45) {
+		_sram_load_45(block, BLOCK_SIZE);
+	}
 }
 
 static void __flash_loader(struct sram_loader_config *cfg)
@@ -187,7 +243,7 @@ static void __flash_loader(struct sram_loader_config *cfg)
 	len = (cfg->len-16-4);
 
 	while (true) {
-		__copy_to_sram(sram_addr, flash_addr);
+		__copy_to_sram(cfg, sram_addr, flash_addr);
 		sram_addr += (LOADE_SIZE * 2);
 		flash_addr += (LOADE_SIZE * 2);
 		block++;

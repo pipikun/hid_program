@@ -21,8 +21,8 @@
 #define MDIO_PREAMBLE		(0xffffffff)
 
 enum mdio_clause_type {
-        MDIO_45 = 0,
-        MDIO_22,
+        MDIO_45 = 0x45,
+        MDIO_22 = 0x22,
 };
 
 enum mdio_op_type {

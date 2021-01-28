@@ -98,8 +98,7 @@ int main(void)
         MX_SPI2_Init();
         /* USER CODE BEGIN 2 */
         i2c_gpio_init();
-        mdio_module_init();
-
+	hid_init();
         /* USER CODE END 2 */
 
         /* Infinite loop */

@@ -55,6 +55,7 @@ struct mdio_download {
 };
 
 uint8_t hid_cmd_entry(uint8_t *buf);
+void hid_init(void);
 
 #endif /*__HID_CMD_H__ */
 //vim: ts=8 sw=8 noet autoindent:

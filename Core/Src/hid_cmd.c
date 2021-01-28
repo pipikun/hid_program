@@ -14,6 +14,19 @@ struct sram_loader_config sram_cfg;
 
 uint8_t fw_buf[FIRMWARE_SIZE] = {0};
 
+void hid_init(void)
+{
+	// auto reload dev_sel
+	spi_dev_sel(USER_CFG->dev_id, USER_CFG->clause);
+	sram_cfg.clause = USER_CFG->clause;
+	mdio_cfg.clause = USER_CFG->clause;
+
+	// auto load firmware to sram.
+	if (USER_CFG->autoload == 1) {
+		sram_loader(&sram_cfg);
+	}
+}
+
 static void hid_i2c_firmware_download(void)
 {
 	uint16_t page, less, addr, idx = 0;
@@ -200,7 +213,14 @@ static uint8_t hid_mdio_download(uint8_t *buf)
 
 static void hid_mdio_cfg(uint8_t *buf)
 {
-	spi_mdio_config(buf);
+	uint8_t clause, dev_sel;
+
+	clause = buf[3];
+	dev_sel = buf[4];
+
+	spi_dev_sel(dev_sel, clause);
+	sram_cfg.clause = clause;
+	buf[2] = 0xaa;
 }
 
 static void hid_mdio_read(uint8_t *buf)
@@ -215,7 +235,41 @@ static void hid_mdio_write(uint8_t *buf)
 
 static void hid_mcu_config(uint8_t *buf)
 {
+	uint8_t cmd, val;
 
+	struct hid_user_config cfg = {
+		.autoload = USER_CFG->autoload,
+		.type = USER_CFG->type,
+		.phy_id = USER_CFG->phy_id,
+		.dev_id = USER_CFG->dev_id,
+		.clause = USER_CFG->clause
+	};
+
+	cmd = buf[3];
+	val = buf[4];
+
+	switch (cmd) {
+	case 1:
+		cfg.autoload = val;
+		break;
+	case 2:
+		cfg.dev_id = val;
+		break;
+	case 3:
+		cfg.phy_id = val;
+		break;
+	case 4:
+		cfg.type = val;
+		break;
+	case 5:
+		cfg.clause = val;
+		break;
+	default:
+		buf[1] = 0x01;
+		break;
+	}
+
+	user_config_update(&cfg);
 }
 
 static void hid_mcu_dump(uint8_t *buf)
@@ -237,7 +291,12 @@ static void hid_mcu_dump(uint8_t *buf)
 	buf[10] = sram_cfg.opt>>8;
 	buf[11] = sram_cfg.opt&0xff;
 
-
+	buf[12] = USER_CFG->autoload;
+	buf[13] = USER_CFG->type;
+	buf[14] = USER_CFG->phy_id;
+	buf[15] = USER_CFG->dev_id;
+	buf[16] = USER_CFG->clause;
+	buf[17] = sram_cfg.clause;
 }
 
 uint8_t hid_cmd_entry(uint8_t *buf)

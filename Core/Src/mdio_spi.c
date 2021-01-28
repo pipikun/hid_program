@@ -46,12 +46,10 @@ void spi_mdio_disable(struct spi_mdio_status *status)
         }
 }
 
-void spi_mdio_config(uint8_t *buf)
+void spi_dev_sel(uint8_t sel, uint8_t clause)
 {
-        status.clause = buf[3];
-        spi_mdio_dev_sel(&status, buf[4]);
-        /* config success. */
-        buf[2] = 0xaa;
+	spi_mdio_dev_sel(&status, sel);
+	status.clause = clause;
 }
 
 #define TIMEOUT_1_MS    10

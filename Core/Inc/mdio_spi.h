@@ -31,6 +31,7 @@ void spi_mdio_write_fs(uint8_t *buf, uint8_t len);
 
 void spi_mdio_enable(struct spi_mdio_status *status);
 void spi_mdio_disable(struct spi_mdio_status *status);
+void spi_dev_sel(uint8_t sel, uint8_t clause);
 
 extern struct spi_mdio_status status;
 
